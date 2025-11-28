@@ -142,36 +142,39 @@ export const sendMessage = async (req, res) => {
     // Populate sender info before emitting
     await newMessage.populate("senderId", "fullName profilePic");
 
-    // Emit to recipients and update delivery status
+    // Emit to recipients and collect online recipient IDs
+    const onlineRecipientIds = [];
+
     for (const recipientId of recipients) {
       const recipientSocketId = await getReceiverSocketId(recipientId);
 
       if (recipientSocketId) {
-        // Recipient is online - emit message and mark as delivered
+        // Recipient is online - emit message
         io.to(recipientSocketId).emit("newMessage", newMessage);
-
-        // Update delivery status to delivered
-        await Message.updateOne(
-          { _id: newMessage._id, "deliveryStatus.userId": recipientId },
-          {
-            $set: {
-              "deliveryStatus.$.status": "delivered",
-              "deliveryStatus.$.deliveredAt": new Date(),
-            },
-          }
-        );
+        onlineRecipientIds.push(recipientId);
       }
       // If offline, status remains "sent" - will be delivered on reconnect
     }
 
-    // Update overall message status if at least one recipient got it
-    const onlineRecipientChecks = await Promise.all(
-      recipients.map((id) => getReceiverSocketId(id))
-    );
-    const onlineRecipients = onlineRecipientChecks.filter(Boolean);
-    if (onlineRecipients.length > 0) {
+    // Batch update delivery status for all online recipients (single DB operation)
+    if (onlineRecipientIds.length > 0) {
+      const deliveredAt = new Date();
+      await Message.updateOne(
+        { _id: newMessage._id },
+        {
+          $set: {
+            status: "delivered",
+            "deliveryStatus.$[elem].status": "delivered",
+            "deliveryStatus.$[elem].deliveredAt": deliveredAt,
+          },
+        },
+        {
+          arrayFilters: [{ "elem.userId": { $in: onlineRecipientIds } }],
+        }
+      );
+
+      // Update the in-memory object for response
       newMessage.status = "delivered";
-      await newMessage.save();
     }
 
     res.status(201).json(newMessage);

@@ -127,8 +127,12 @@ io.on("connection", async (socket) => {
 
     // Handle joining a new chat room (for newly created chats)
     socket.on("joinChat", (chatId) => {
-      socket.join(`chat:${chatId}`);
-      console.log(`User ${userId} joined room chat:${chatId}`);
+      const roomName = `chat:${chatId}`;
+      // Only join if not already in room (prevent duplicates)
+      if (!socket.rooms.has(roomName)) {
+        socket.join(roomName);
+        console.log(`User ${userId} joined room ${roomName}`);
+      }
     });
 
     // Handle leaving a chat room
