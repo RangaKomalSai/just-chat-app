@@ -46,7 +46,7 @@ io.on("connection", async (socket) => {
   const accessToken = socket.handshake.query.accessToken;
 
   if (!accessToken) {
-    console.log("No access token provided, disconnecting");
+    // console.log("No access token provided, disconnecting");
     socket.disconnect();
     return;
   }
@@ -81,9 +81,9 @@ io.on("connection", async (socket) => {
         .sort({ createdAt: 1 });
 
       if (missedMessages.length > 0) {
-        console.log(
-          `Delivering ${missedMessages.length} missed messages to user ${userId}`
-        );
+        // console.log(
+        //   `Delivering ${missedMessages.length} missed messages to user ${userId}`
+        // );
 
         // Emit missed messages
         socket.emit("missedMessages", missedMessages);

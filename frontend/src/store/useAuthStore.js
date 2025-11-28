@@ -21,7 +21,7 @@ export const useAuthStore = create((set, get) => ({
       set({ authUser: res.data });
       get().connectSocket();
     } catch (error) {
-      console.log("Error in checkAuth:", error);
+      console.log("Error in Auth:");
       set({ authUser: null });
     } finally {
       set({ isCheckingAuth: false });
@@ -41,7 +41,7 @@ export const useAuthStore = create((set, get) => ({
 
       return newAccessToken;
     } catch (error) {
-      console.log("Failed to refresh token:", error);
+      console.log("Failed to refresh token");
       set({ authUser: null });
       return null;
     }
@@ -96,7 +96,7 @@ export const useAuthStore = create((set, get) => ({
       if (showToast) toast.success("Profile updated successfully");
       return res.data;
     } catch (error) {
-      console.log("error in update profile:", error);
+      console.log("error in update profile:");
       if (showToast)
         toast.error(
           error.response?.data?.message || "Failed to update profile"
@@ -133,7 +133,7 @@ export const useAuthStore = create((set, get) => ({
     // Socket will auto-join chat rooms on the server side
     // Listen for join confirmations if needed for debugging
     socket.on("connect", () => {
-      console.log("Socket connected:", socket.id);
+      console.log("Socket connected:");
     });
 
     socket.on("disconnect", () => {
@@ -142,7 +142,7 @@ export const useAuthStore = create((set, get) => ({
 
     // Handle authentication errors
     socket.on("connect_error", async (error) => {
-      console.log("Socket connection error:", error.message);
+      console.log("Socket connection error");
       // If token expired, try to refresh and reconnect
       if (error.message.includes("jwt")) {
         const newToken = await get().refreshToken();

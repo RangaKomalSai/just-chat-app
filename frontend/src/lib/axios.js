@@ -73,7 +73,7 @@ axiosInstance.interceptors.response.use(
         // Store new access token if returned
         if (refreshResponse.data?.accessToken) {
           // Access token is set in cookie automatically
-          console.log('Access token refreshed successfully');
+          // console.log('Access token refreshed successfully');
         }
 
         // Process queued requests

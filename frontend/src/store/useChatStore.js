@@ -177,8 +177,6 @@ export const useChatStore = create((set, get) => ({
 
     // Listen for missed messages
     socket.on("missedMessages", (missedMessages) => {
-      console.log("Received missed messages:", missedMessages.length);
-
       const { selectedChat, messages, unreadCounts } = get();
       const authUser = useAuthStore.getState().authUser;
 

@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
-import { Image, Send, X, File } from "lucide-react";
+import { Image, Paperclip, Send, X, File } from "lucide-react";
 import toast from "react-hot-toast";
 import { axiosInstance } from "../lib/axios";
 
@@ -25,7 +25,7 @@ const MessageInput = () => {
 
     // Handle all files (including images) via S3
     setSelectedFile(file);
-    
+
     // Show preview for images
     if (file.type.startsWith("image/")) {
       const reader = new FileReader();
@@ -34,7 +34,7 @@ const MessageInput = () => {
       };
       reader.readAsDataURL(file);
     }
-    
+
     toast.success(`File selected: ${file.name}`);
   };
 
@@ -170,15 +170,13 @@ const MessageInput = () => {
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
           >
-            <Image size={20} />
+            <Paperclip size={20} />
           </button>
         </div>
         <button
           type="submit"
           className="btn btn-sm btn-circle"
-          disabled={
-            (!text.trim() && !selectedFile) || isUploading
-          }
+          disabled={(!text.trim() && !selectedFile) || isUploading}
         >
           {isUploading ? (
             <span className="loading loading-spinner loading-sm"></span>
