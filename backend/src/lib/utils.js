@@ -20,6 +20,12 @@ export const generateRefreshToken = (userId) => {
 export const generateTokens = async (userId, res, req) => {
   const accessToken = generateAccessToken(userId);
   const refreshToken = generateRefreshToken(userId);
+  const isProduction = process.env.NODE_ENV === "production";
+  const cookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "strict",
+  };
 
   // Store refresh token in database
   const expiresAt = new Date();
@@ -36,17 +42,13 @@ export const generateTokens = async (userId, res, req) => {
   // Set access token in cookie (short-lived)
   res.cookie("accessToken", accessToken, {
     maxAge: 15 * 60 * 1000, // 15 minutes in MS
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV !== "development",
+    ...cookieOptions,
   });
 
   // Set refresh token in cookie (long-lived)
   res.cookie("refreshToken", refreshToken, {
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in MS
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV !== "development",
+    ...cookieOptions,
     // No path restriction - needed for refresh endpoint to receive it
   });
 
