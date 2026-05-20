@@ -89,6 +89,12 @@ export const login = async (req, res) => {
 export const logout = async (req, res) => {
   try {
     const { refreshToken } = req.cookies;
+    const isProduction = process.env.NODE_ENV === "production";
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "strict",
+    };
 
     // Revoke the refresh token if it exists
     if (refreshToken) {
@@ -96,9 +102,9 @@ export const logout = async (req, res) => {
     }
 
     // Clear cookies
-    res.cookie("accessToken", "", { maxAge: 0 });
-    res.cookie("refreshToken", "", { maxAge: 0 });
-    res.cookie("jwt", "", { maxAge: 0 }); // Legacy support
+    res.cookie("accessToken", "", { ...cookieOptions, maxAge: 0 });
+    res.cookie("refreshToken", "", { ...cookieOptions, maxAge: 0 });
+    res.cookie("jwt", "", { ...cookieOptions, maxAge: 0 }); // Legacy support
 
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
@@ -120,7 +126,7 @@ export const updateProfile = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { profilePic: uploadResponse.secure_url },
-      { new: true }
+      { new: true },
     );
 
     res.status(200).json(updatedUser);
@@ -181,13 +187,13 @@ export const refreshAccessToken = async (req, res) => {
     const { accessToken, refreshToken: newRefreshToken } = await generateTokens(
       decoded.userId,
       res,
-      req
+      req,
     );
 
     // Revoke old refresh token (token rotation for security)
     await RefreshToken.updateOne(
       { token: refreshToken },
-      { isRevoked: true, replacedBy: newRefreshToken }
+      { isRevoked: true, replacedBy: newRefreshToken },
     );
 
     res.status(200).json({
@@ -204,13 +210,19 @@ export const refreshAccessToken = async (req, res) => {
 export const logoutAll = async (req, res) => {
   try {
     const userId = req.user._id;
+    const isProduction = process.env.NODE_ENV === "production";
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "strict",
+    };
 
     // Revoke all refresh tokens for this user
     await revokeAllUserTokens(userId);
 
     // Clear cookies
-    res.cookie("accessToken", "", { maxAge: 0 });
-    res.cookie("refreshToken", "", { maxAge: 0 });
+    res.cookie("accessToken", "", { ...cookieOptions, maxAge: 0 });
+    res.cookie("refreshToken", "", { ...cookieOptions, maxAge: 0 });
 
     res.status(200).json({ message: "Logged out from all devices" });
   } catch (error) {
